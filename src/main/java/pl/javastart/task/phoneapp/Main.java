@@ -1,6 +1,6 @@
 package pl.javastart.task.phoneapp;
 
-import pl.javastart.task.contracts.CardPhoneContract;
+import pl.javastart.task.contracts.CardContract;
 import pl.javastart.task.contracts.MixContract;
 import pl.javastart.task.contracts.SubscriptionContract;
 import pl.javastart.task.phone.Phone;
@@ -8,7 +8,7 @@ import pl.javastart.task.phone.Phone;
 public class Main {
 
     public static void main(String[] args) {
-        Phone phone = new Phone(new CardPhoneContract(0.2, .1, .2, 0.5));
+        Phone phone = new Phone(new CardContract(0.2, .1, .2, 0.5));
         phone.printAccountState();
         phone.sendSms();
         phone.printAccountState();

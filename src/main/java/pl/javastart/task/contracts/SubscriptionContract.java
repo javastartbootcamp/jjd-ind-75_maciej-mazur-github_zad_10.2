@@ -4,11 +4,28 @@ public class SubscriptionContract extends Contract {
     private final double subscriptionCost;
 
     public SubscriptionContract(double subscriptionCost) {
-        super(ContractType.SUBSCRIPTION);
         this.subscriptionCost = subscriptionCost;
     }
 
-    public double getSubscriptionCost() {
-        return subscriptionCost;
+    @Override
+    public boolean sendSms() {
+        sentSmsNumber++;
+        return true;
+    }
+
+    @Override
+    public boolean sendMms() {
+        sentMmsNumber++;
+        return true;
+    }
+
+    @Override
+    public int call(int seconds) {
+        return seconds;
+    }
+
+    @Override
+    public String getAccountStateInfo() {
+        return String.format("%sRachunek abonamentowy: %.2f zł%n", super.getAccountStateInfo(), subscriptionCost);
     }
 }

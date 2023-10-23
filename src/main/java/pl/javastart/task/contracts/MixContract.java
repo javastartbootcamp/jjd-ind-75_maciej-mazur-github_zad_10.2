@@ -1,52 +1,92 @@
 package pl.javastart.task.contracts;
 
-public class MixContract extends Contract {
-    /*
-    W pierwszym polu użyłem kompozycji zamiast uczynić z MixContract pochodną CardPhoneContract ze względu na wykorzystaną
-    przeze mnie strategię wpisywania na sztywno typu kontraktu (ContractType). Gdybym użył wspomnianego dziedziczenia, to nie
-    miałbym potem możliwości zmienić wartości pola contractType na ContractType.MIX
-     */
-    private final CardPhoneContract cardContractPart;
-    private final double freeFunds;
-    private final int freeSmsNumber;
-    private final int freeMmsNumber;
-    private final int freeCallMinutes;
+public class MixContract extends CardContract {
+    private int freeSmsNumber;
+    private int freeMmsNumber;
+    private int freeCallSeconds;
 
     public MixContract(double freeFunds, int freeSmsNumber, int freeMmsNumber, int freeCallMinutes,
-                       double smsCost, double mmsCost, double callCost) {
-        super(ContractType.MIX);
-        this.freeFunds = freeFunds;
+                       double smsCost, double mmsCost, double callCostPerMinute) {
+        super(freeFunds, smsCost, mmsCost, callCostPerMinute);
         this.freeSmsNumber = freeSmsNumber;
         this.freeMmsNumber = freeMmsNumber;
-        this.freeCallMinutes = freeCallMinutes;
-        this.cardContractPart = new CardPhoneContract(freeFunds, smsCost, mmsCost, callCost);
+        this.freeCallSeconds = freeCallMinutes / 60;
     }
 
-    public double getFreeFunds() {
-        return freeFunds;
+    @Override
+    public boolean sendSms() {
+        if (accountBalance < smsCost) {
+            return false;
+        }
+
+        if (freeSmsNumber > 0) {
+            freeSmsNumber--;
+        } else {
+            accountBalance -= smsCost;
+        }
+
+        sentSmsNumber++;
+        return true;
     }
 
-    public int getFreeSmsNumber() {
-        return freeSmsNumber;
+    @Override
+    public boolean sendMms() {
+        if (accountBalance < mmsCost) {
+            return false;
+        }
+
+        if (freeMmsNumber > 0) {
+            freeMmsNumber--;
+        } else {
+            accountBalance -= mmsCost;
+        }
+
+        sentMmsNumber++;
+        return true;
     }
 
-    public int getFreeMmsNumber() {
-        return freeMmsNumber;
+    @Override
+    public int call(int seconds) {
+        if (freeCallSeconds == 0 && accountBalance == 0) {
+            return NO_FUNDS;
+        }
+
+        if (seconds <= freeCallSeconds) {
+            freeCallSeconds -= seconds;
+            calledSecondsNumber += seconds;
+            return seconds;
+        }
+
+        /*
+        Poniżej przypadek, gdy połączenie musi zostać pokryte częściowo z darmowych minut i częściowo z wolnych środków
+         */
+
+        int secondsNeededFromFreeFunds = seconds - freeCallSeconds;
+        int achievableFreeFundsSeconds = (int) (accountBalance / callCostPerSecond);
+        int totalCallDuration = freeCallSeconds;
+        freeCallSeconds = 0;
+
+        if (secondsNeededFromFreeFunds <= achievableFreeFundsSeconds) {
+            totalCallDuration += secondsNeededFromFreeFunds;
+            accountBalance -= secondsNeededFromFreeFunds * callCostPerSecond;
+        } else {
+            totalCallDuration += achievableFreeFundsSeconds;
+            accountBalance -= achievableFreeFundsSeconds + callCostPerSecond;
+        }
+
+        return calledSecondsNumber += totalCallDuration;
     }
 
-    public int getFreeCallMinutes() {
-        return freeCallMinutes;
-    }
+    @Override
+    public String getAccountStateInfo() {
+        int fullMinutes = freeCallSeconds / 60;
+        int remainingSeconds = freeCallSeconds % 60;
 
-    public double getSmsCost() {
-        return cardContractPart.getSmsCost();
-    }
-
-    public double getMmsCost() {
-        return cardContractPart.getMmsCost();
-    }
-
-    public double getCallCost() {
-        return cardContractPart.getCallCost();
+        return String.format("%sPozostałe SMS-y: %d%n" +
+                "Pozostałe MMS-y: %d%n" +
+                "Pozostałe sekundy: %d (%d min %d s)%n" +
+                "Stan konta: %.2f zł%n",
+                super.getAccountStateInfo(), freeSmsNumber, freeMmsNumber,
+                freeCallSeconds, fullMinutes, remainingSeconds, accountBalance);
     }
 }
