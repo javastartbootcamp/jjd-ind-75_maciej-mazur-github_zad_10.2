@@ -1,10 +1,10 @@
 package pl.javastart.task.contracts;
 
 public class CardContract extends Contract {
-    protected final double smsCost;
-    protected final double mmsCost;
-    protected final double callCostPerSecond;
-    protected double accountBalance;
+    final double smsCost;
+    final double mmsCost;
+    final double callCostPerSecond;
+    double accountBalance;
 
     public CardContract(double accountBalance, double smsCost, double mmsCost, double callCostPerMinute) {
         this.accountBalance = accountBalance;
@@ -56,6 +56,6 @@ public class CardContract extends Contract {
 
     @Override
     public String getAccountStateInfo() {
-        return String.format("%sNa koncie zostało %.2f zł ", super.getAccountStateInfo(), accountBalance);
+        return String.format("%sNa koncie zostało %.2f zł%n", super.getAccountStateInfo(), accountBalance);
     }
 }

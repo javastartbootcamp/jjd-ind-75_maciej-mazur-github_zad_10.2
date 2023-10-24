@@ -10,38 +10,34 @@ public class MixContract extends CardContract {
         super(freeFunds, smsCost, mmsCost, callCostPerMinute);
         this.freeSmsNumber = freeSmsNumber;
         this.freeMmsNumber = freeMmsNumber;
-        this.freeCallSeconds = freeCallMinutes / 60;
+        this.freeCallSeconds = freeCallMinutes * 60;
     }
 
     @Override
     public boolean sendSms() {
-        if (accountBalance < smsCost) {
+        if (freeSmsNumber == 0 && smsCost > accountBalance) {
             return false;
         }
-
         if (freeSmsNumber > 0) {
             freeSmsNumber--;
         } else {
             accountBalance -= smsCost;
         }
 
-        sentSmsNumber++;
         return true;
     }
 
     @Override
     public boolean sendMms() {
-        if (accountBalance < mmsCost) {
+        if (freeMmsNumber == 0 && mmsCost > accountBalance) {
             return false;
         }
-
         if (freeMmsNumber > 0) {
             freeMmsNumber--;
         } else {
             accountBalance -= mmsCost;
         }
 
-        sentMmsNumber++;
         return true;
     }
 
@@ -82,11 +78,11 @@ public class MixContract extends CardContract {
         int fullMinutes = freeCallSeconds / 60;
         int remainingSeconds = freeCallSeconds % 60;
 
-        return String.format("%sPozostałe SMS-y: %d%n" +
-                "Pozostałe MMS-y: %d%n" +
-                "Pozostałe sekundy: %d (%d min %d s)%n" +
-                "Stan konta: %.2f zł%n",
+        return String.format("%s=========================%n" +
+                        "Pozostałe darmowe SMS-y: %d%n" +
+                "Pozostałe darmowe MMS-y: %d%n" +
+                "Pozostałe darmowe sekundy: %d (%d min %d s)%n",
                 super.getAccountStateInfo(), freeSmsNumber, freeMmsNumber,
-                freeCallSeconds, fullMinutes, remainingSeconds, accountBalance);
+                freeCallSeconds, fullMinutes, remainingSeconds);
     }
 }
