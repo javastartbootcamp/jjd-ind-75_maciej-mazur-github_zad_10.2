@@ -35,10 +35,12 @@ public class Phone {
         } else if (actualCallDuration == seconds) {
             System.out.printf("%nWykonano pełne połączenie o długości %d sekund (%d min %d s)%n%n",
                     seconds, fullMinutes, remainingSeconds);
-        } else {
+        } else if (actualCallDuration > 0 && actualCallDuration < seconds) {
             System.out.printf("%nWykonano połączenie. Po upływie %d sekund (%d min %d s) musiało ono zostać przerwane" +
                     " ze względu na brak dostępności dalszych środków.%n%n",
-                    seconds, fullMinutes, remainingSeconds);
+                    actualCallDuration, fullMinutes, remainingSeconds);
+        } else {
+            System.out.println("\nCoś poszło nie tak.\n");
         }
     }
 

@@ -32,7 +32,9 @@ public class Main {
         phone.printAccountState();
 //        phone.call(30);
 //        phone.printAccountState();
-        phone.call(120);
+        phone.call(100);
+        phone.printAccountState();
+        phone.call(100);
         phone.printAccountState();
         phone.sendMms();
         phone.printAccountState();

@@ -1,88 +1,80 @@
 package pl.javastart.task.contracts;
 
 public class MixContract extends CardContract {
-    private int freeSmsNumber;
-    private int freeMmsNumber;
-    private int freeCallSeconds;
+    private int smsPackage;
+    private int mmsPackage;
+    private int secondsPackage;
 
-    public MixContract(double freeFunds, int freeSmsNumber, int freeMmsNumber, int freeCallMinutes,
+    public MixContract(double freeFunds, int smsPackage, int mmsPackage, int freeCallMinutes,
                        double smsCost, double mmsCost, double callCostPerMinute) {
         super(freeFunds, smsCost, mmsCost, callCostPerMinute);
-        this.freeSmsNumber = freeSmsNumber;
-        this.freeMmsNumber = freeMmsNumber;
-        this.freeCallSeconds = freeCallMinutes * 60;
+        this.smsPackage = smsPackage;
+        this.mmsPackage = mmsPackage;
+        this.secondsPackage = freeCallMinutes * 60;
     }
 
     @Override
     public boolean sendSms() {
-        if (freeSmsNumber == 0 && smsCost > accountBalance) {
+        if (smsPackage == 0 && smsCost > accountBalance) {
             return false;
         }
-        if (freeSmsNumber > 0) {
-            freeSmsNumber--;
+        if (smsPackage > 0) {
+            smsPackage--;
+            return true;
         } else {
-            accountBalance -= smsCost;
+            return super.sendSms();
         }
-
-        return true;
     }
 
     @Override
     public boolean sendMms() {
-        if (freeMmsNumber == 0 && mmsCost > accountBalance) {
+        if (mmsPackage == 0 && mmsCost > accountBalance) {
             return false;
         }
-        if (freeMmsNumber > 0) {
-            freeMmsNumber--;
+        if (mmsPackage > 0) {
+            mmsPackage--;
+            return true;
         } else {
-            accountBalance -= mmsCost;
+            return super.sendMms();
         }
-
-        return true;
     }
 
     @Override
     public int call(int seconds) {
-        if (freeCallSeconds == 0 && accountBalance == 0) {
+        if (secondsPackage == 0 && accountBalance == 0) {
             return NO_FUNDS;
         }
 
-        if (seconds <= freeCallSeconds) {
-            freeCallSeconds -= seconds;
-            calledSecondsNumber += seconds;
-            return seconds;
-        }
-
-        /*
-        Poniżej przypadek, gdy połączenie musi zostać pokryte częściowo z darmowych minut i częściowo z wolnych środków
-         */
-
-        int secondsNeededFromFreeFunds = seconds - freeCallSeconds;
-        int achievableFreeFundsSeconds = (int) (accountBalance / callCostPerSecond);
-        int totalCallDuration = freeCallSeconds;
-        freeCallSeconds = 0;
-
-        if (secondsNeededFromFreeFunds <= achievableFreeFundsSeconds) {
-            totalCallDuration += secondsNeededFromFreeFunds;
-            accountBalance -= secondsNeededFromFreeFunds * callCostPerSecond;
+        if (seconds <= secondsPackage) {
+            return usePackageSecondsOnly(seconds);
         } else {
-            totalCallDuration += achievableFreeFundsSeconds;
-            accountBalance -= achievableFreeFundsSeconds + callCostPerSecond;
+            return usePackageSecondsAndFreeFunds(seconds);
         }
+    }
 
-        return calledSecondsNumber += totalCallDuration;
+    private int usePackageSecondsOnly(int seconds) {
+        secondsPackage -= seconds;
+        calledSecondsNumber += seconds;
+        return seconds;
+    }
+
+    private int usePackageSecondsAndFreeFunds(int seconds) {
+        int totalCallDuration = secondsPackage;
+        calledSecondsNumber += totalCallDuration;
+        secondsPackage = 0;
+        return totalCallDuration + super.call(seconds - totalCallDuration);
     }
 
     @Override
     public String getAccountStateInfo() {
-        int fullMinutes = freeCallSeconds / 60;
-        int remainingSeconds = freeCallSeconds % 60;
+        int fullMinutes = secondsPackage / 60;
+        int remainingSeconds = secondsPackage % 60;
 
         return String.format("%s=========================%n" +
                         "Pozostałe darmowe SMS-y: %d%n" +
                 "Pozostałe darmowe MMS-y: %d%n" +
                 "Pozostałe darmowe sekundy: %d (%d min %d s)%n",
-                super.getAccountStateInfo(), freeSmsNumber, freeMmsNumber,
-                freeCallSeconds, fullMinutes, remainingSeconds);
+                super.getAccountStateInfo(), smsPackage, mmsPackage,
+                secondsPackage, fullMinutes, remainingSeconds);
     }
 }
