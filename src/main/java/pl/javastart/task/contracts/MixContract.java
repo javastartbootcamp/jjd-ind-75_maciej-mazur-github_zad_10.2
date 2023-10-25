@@ -15,11 +15,9 @@ public class MixContract extends CardContract {
 
     @Override
     public boolean sendSms() {
-        if (smsPackage == 0 && smsCost > accountBalance) {
-            return false;
-        }
         if (smsPackage > 0) {
             smsPackage--;
+            sentSmsNumber++;
             return true;
         } else {
             return super.sendSms();
@@ -28,11 +26,9 @@ public class MixContract extends CardContract {
 
     @Override
     public boolean sendMms() {
-        if (mmsPackage == 0 && mmsCost > accountBalance) {
-            return false;
-        }
         if (mmsPackage > 0) {
             mmsPackage--;
+            sentMmsNumber++;
             return true;
         } else {
             return super.sendMms();
